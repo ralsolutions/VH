@@ -223,7 +223,7 @@
         trade: { label: "Trade", value: trade, status: trade === "none" ? "⚠️" : "✅" },
         climbing: { label: "Climbing", value: climbing, status: climbing === "none" ? "❌" : climbing === "few" ? "⚠️" : "✅" },
         fitness: { label: "Fitness", value: fitness, status: fitness === "low" ? "❌" : fitness === "medium" ? "⚠️" : "✅" },
-        teamwork: { label: "Teamwork", value: teamwork, status: teamwork === "alone" ? "❌" : teamwork === "ok" ? "⚠️" : "✅" },
+        teamwork: { label: "Teamwork", value: teamwork, status: teamwork === "alone" ? "❌" : "✅" },
         weight: { label: "Weight", value: weight, status: weight === "over120" ? "❌" : weight === "110-120" ? "⚠️" : "✅" }
       };
 
@@ -284,6 +284,11 @@
         legends.push({
           type: "danger",
           text: "🤝 CRITICAL: Rope access is 100% team-based work. You might pass the training technically, but the industry requires constant collaboration, communication, and trust. Solo climbing mindset won't work on commercial job sites. Safety depends on teamwork. You MUST be willing to work closely with others and communicate constantly."
+        });
+      } else if (teamwork === "ok") {
+        legends.push({
+          type: "info",
+          text: "🤝 REMINDER: Rope access is a team-based industry. You'll work closely with the same crew every day. Good communication and trust are non-negotiable. Make sure you're ready for constant collaboration—it's not solo work."
         });
       }
 
