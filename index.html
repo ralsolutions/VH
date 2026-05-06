@@ -450,6 +450,51 @@
         resultMessage = "Your other areas are solid, but rope access requires collaboration.";
       }
 
+      // SAFETY NET: ensure every ⚠️ or ❌ in breakdown has a corresponding legend
+      const legendTexts = legends.map(l => l.text).join(" ");
+      
+      if (breakdown.fitness.status !== "✅" && !legendTexts.includes("fitness") && !legendTexts.includes("Fitness") && !legendTexts.includes("training")) {
+        if (fitness === "low") {
+          legends.push({
+            type: "warn",
+            text: "💪 Low fitness will slow your progress. Start training now: squats, pull-ups, planks 3x/week. Build your base before the course."
+          });
+        } else if (fitness === "medium") {
+          legends.push({
+            type: "warn",
+            text: "💪 Medium fitness is OK, but pushing it to 'high' (3x/week consistent training) will significantly help your performance and longevity in the industry."
+          });
+        }
+      }
+      
+      if (breakdown.climbing.status !== "✅" && !legendTexts.includes("climbing") && !legendTexts.includes("Climbing")) {
+        if (climbing === "none") {
+          legends.push({
+            type: "info",
+            text: "🧗 Never climbed? Rope access training covers it, but gym climbing beforehand (4-6 weeks) builds confidence and muscle memory."
+          });
+        } else if (climbing === "few") {
+          legends.push({
+            type: "info",
+            text: "🧗 You've climbed a few times—good start. Push it to regular practice (1-2x/week for 2 months) to really benefit."
+          });
+        }
+      }
+      
+      if (breakdown.trade.status !== "✅" && !legendTexts.includes("trade") && !legendTexts.includes("Trade")) {
+        legends.push({
+          type: "info",
+          text: "🔧 No trade background? You can learn on the job, but hiring improves significantly with construction/trade experience."
+        });
+      }
+      
+      if (breakdown.weight.status !== "✅" && !legendTexts.includes("weight") && !legendTexts.includes("Weight") && !legendTexts.includes("higher weight")) {
+        legends.push({
+          type: "warn",
+          text: "⚖️ You're approaching the equipment weight limit (120kg max). Maintain or build fitness to stay safely within working limits."
+        });
+      }
+
       return {
         status: resultStatus,
         title: resultTitle,
