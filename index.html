@@ -48,7 +48,6 @@
 
     @keyframes fadeIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
     @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:.5; } }
-    @keyframes glow { 0%,100% { box-shadow:0 0 20px rgba(0,212,255,.3); } 50% { box-shadow:0 0 40px rgba(0,212,255,.5); } }
 
     .app { min-height:100vh; background:var(--bg-deep); }
     .header { position:sticky; top:0; z-index:100; background:var(--bg); border-bottom:1px solid var(--border); padding:20px 24px; display:flex; align-items:center; gap:20px; }
@@ -144,9 +143,21 @@
         ]
       },
       {
+        id: "weight",
+        emoji: "⚖️",
+        text: "Total working weight (in kg)?",
+        options: [
+          ["Under 70kg", "under70"],
+          ["70-90kg", "70-90"],
+          ["90-110kg", "90-110"],
+          ["110-120kg", "110-120"],
+          ["Over 120kg", "over120"]
+        ]
+      },
+      {
         id: "age",
         emoji: "🎂",
-        text: "What's your age range?",
+        text: "Age range?",
         options: [
           ["18 - 25", "18-25"],
           ["25 - 30", "25-30"],
@@ -162,7 +173,7 @@
         options: [
           ["None", "none"],
           ["Some (1-2 years)", "some"],
-          ["Solid experience (5+ years)", "pro"]
+          ["Solid (5+ years)", "pro"]
         ]
       },
       {
@@ -198,88 +209,202 @@
       }
     ];
 
-    function scoreAnswers(answers) {
-      let points = 0;
-      const breakdown = {};
+    function evaluateProfile(answers) {
+      const isCitizenOrPR = answers.citizenship === "yes";
+      const weight = answers.weight;
+      const age = answers.age;
+      const trade = answers.trade;
+      const climbing = answers.climbing;
+      const fitness = answers.fitness;
+      const teamwork = answers.teamwork;
+
+      const breakdown = {
+        age: { label: "Age", value: age, status: "ℹ️" },
+        trade: { label: "Trade", value: trade, status: trade === "none" ? "⚠️" : "✅" },
+        climbing: { label: "Climbing", value: climbing, status: climbing === "none" ? "❌" : climbing === "few" ? "⚠️" : "✅" },
+        fitness: { label: "Fitness", value: fitness, status: fitness === "low" ? "❌" : fitness === "medium" ? "⚠️" : "✅" },
+        teamwork: { label: "Teamwork", value: teamwork, status: teamwork === "alone" ? "❌" : teamwork === "ok" ? "⚠️" : "✅" },
+        weight: { label: "Weight", value: weight, status: weight === "over120" ? "❌" : weight === "110-120" ? "⚠️" : "✅" }
+      };
+
       const legends = [];
 
-      // Age
-      const ageMap = { "18-25": 5, "25-30": 7, "30-35": 9, "35-40": 5, "40+": 3 };
-      const agePoints = ageMap[answers.age] || 0;
-      points += agePoints;
-      
-      let ageStatus = "✅";
-      if (answers.age === "40+") {
-        ageStatus = "⚠️";
-        const hasGoodFitness = answers.fitness === "high";
-        const hasClimbing = answers.climbing === "regular" || answers.climbing === "often";
-        const hasTrade = answers.trade === "pro" || answers.trade === "some";
-        
-        if (hasGoodFitness && hasClimbing && hasTrade) {
-          legends.push({ type: "info", text: "🎂 At 40+, you've got the foundation: strong fitness, climbing experience, and trade background. You can absolutely do this, but rope access is physically demanding—stay consistent." });
-        } else {
-          legends.push({ type: "warn", text: "🎂 At 40+, rope access is physically demanding. You need strong fitness (3+x/week), climbing experience, and ideally some trade background. Build these first." });
+      // BLOQUEADOR 1: No PR/Citizenship
+      if (!isCitizenOrPR) {
+        return {
+          status: "blocked",
+          title: "We'd Love to Have You, But...",
+          message: "The Dual Qualification Pathway is currently available for NZ citizens and permanent residents only.",
+          breakdown,
+          legends: [{
+            type: "danger",
+            text: "🛂 This programme is designed for NZ citizens and permanent residents. If you're on a visa pathway, consider connecting with immigration specialists or explore other training options."
+          }]
+        };
+      }
+
+      // BLOQUEADOR 2: Weight > 120kg
+      if (weight === "over120") {
+        return {
+          status: "blocked",
+          title: "Equipment Limitations",
+          message: "Due to equipment limitations, we are unable to accommodate individuals with a total working weight exceeding 120 kg.",
+          breakdown,
+          legends: [{
+            type: "danger",
+            text: "⚖️ Our safety systems and harnesses have weight capacity limits. We cannot compromise on safety."
+          }]
+        };
+      }
+
+      // Weight warning
+      if (weight === "90-110" || weight === "110-120") {
+        legends.push({
+          type: "warn",
+          text: "⚖️ You're in the higher weight range. You'll need a strong fitness level. Equipment has limits—staying fit helps everything."
+        });
+      }
+
+      // Age + sedentary blocker (40+ + no trade + low fitness)
+      if (age === "40+" && trade === "none" && fitness === "low") {
+        return {
+          status: "blocked",
+          title: "Not the Right Time",
+          message: "Rope access at 40+ without trade background and low fitness is an extremely difficult combination.",
+          breakdown,
+          legends: [{
+            type: "danger",
+            text: "🎂💪 At 40+, rope access is physically demanding. Without trade background and low fitness, the odds are heavily stacked against you. Consider building fitness first (6 months of solid training)."
+          }]
+        };
+      }
+
+      // TEAMWORK BLOCKER (but can pass training)
+      if (teamwork === "alone") {
+        legends.push({
+          type: "danger",
+          text: "🤝 CRITICAL: Rope access is 100% team-based work. You might pass the training technically, but the industry requires constant collaboration, communication, and trust. Solo climbing mindset won't work on commercial job sites. Safety depends on teamwork. You MUST be willing to work closely with others and communicate constantly."
+        });
+      }
+
+      // Now build the positive cases
+      let resultStatus = "strong";
+      let resultTitle = "🎉 Strong Profile - You're Ready!";
+      let resultMessage = "Your profile shows you have the foundation to excel in the Dual Qualification Pathway.";
+
+      const isYoung = age === "18-25" || age === "25-30";
+      const isMiddleAge = age === "30-35" || age === "35-40";
+      const isOld = age === "40+";
+      const isHighFit = fitness === "high";
+      const isMediumFit = fitness === "medium";
+      const isLowFit = fitness === "low";
+      const hasClimbing = climbing === "regular" || climbing === "often";
+      const hasBasicClimbing = climbing === "few";
+      const hasTrade = trade === "pro" || trade === "some";
+
+      // STRONG: Young + fit + climbing
+      if (isYoung && isHighFit && hasClimbing) {
+        resultStatus = "strong";
+        resultTitle = "🎉 Excellent Profile!";
+        resultMessage = "You've got all the pieces: youth, fitness, and climbing experience. You're ready for the pathway and have strong job prospects.";
+      }
+      // STRONG: Middle age + good fitness + climbing + trade
+      else if (isMiddleAge && (isHighFit || isMediumFit) && hasClimbing && hasTrade) {
+        resultStatus = "strong";
+        resultTitle = "🎉 Well-Rounded Profile!";
+        resultMessage = "You've built a solid foundation. Good fitness, climbing experience, and trade background = strong candidate.";
+      }
+      // STRONG: 40+ with all bases covered
+      else if (isOld && isHighFit && hasClimbing && hasTrade) {
+        resultStatus = "strong";
+        resultTitle = "🎉 You've Got This!";
+        resultMessage = "At 40+, you're defying the odds. Excellent fitness, climbing experience, and trade background make you a solid candidate despite age.";
+      }
+      // CAN IMPROVE: Young + fit but no climbing
+      else if (isYoung && isHighFit && !hasClimbing) {
+        resultStatus = "can_improve";
+        resultTitle = "💪 You Can Pass - But Improve Here";
+        resultMessage = "Your fitness is your strength. Add climbing experience and you'll significantly boost your job prospects.";
+        legends.push({
+          type: "warn",
+          text: "🧗 No climbing experience yet? Rope access training covers it, but gym climbing beforehand (even 4-6 weeks) builds confidence and muscle memory. It makes a real difference."
+        });
+      }
+      // CAN IMPROVE: Middle age + decent fitness + some climbing
+      else if (isMiddleAge && (isHighFit || isMediumFit) && (hasClimbing || hasBasicClimbing)) {
+        resultStatus = "can_improve";
+        resultTitle = "💪 You Can Pass - But Strengthen These";
+        resultMessage = "You're on track. Depending on your combination, a few specific improvements will boost your readiness.";
+        if (isLowFit) {
+          legends.push({
+            type: "warn",
+            text: "💪 Low fitness at your age: You'll need to train seriously (3x/week minimum). Squats, pull-ups, planks. Build your base before the course."
+          });
+        }
+        if (!hasTrade) {
+          legends.push({
+            type: "info",
+            text: "🔧 No trade background? You can learn on the job, but hiring improves significantly with construction experience. Worth considering."
+          });
         }
       }
-      
-      breakdown.age = { label: "Age", value: answers.age, points: agePoints, status: ageStatus };
-
-      // Trade
-      const tradeMap = { "none": 0, "some": 3, "pro": 7 };
-      const tradePoints = tradeMap[answers.trade] || 0;
-      points += tradePoints;
-      breakdown.trade = { label: "Trade Experience", value: answers.trade, points: tradePoints, status: tradePoints >= 3 ? "✅" : "⚠️" };
-
-      if (answers.trade === "none") {
-        legends.push({ type: "info", text: "🔧 No trade background? That's OK. You can learn on the job, but hiring improves with construction experience." });
+      // 50/50: Young + no trade + low fitness + no climbing (but PR)
+      else if (isYoung && trade === "none" && isLowFit && !hasClimbing) {
+        resultStatus = "tight";
+        resultTitle = "🟡 50/50 - Tight But Possible";
+        resultMessage = "You're borderline. The good news: you've got time. One solid month of basic exercise could swing this in your favor.";
+        legends.push({
+          type: "warn",
+          text: "💪 Try this: 1 month of basic training (planks, push-ups, squats) 3x per week. That could change everything. Come back after 4 weeks of consistent training."
+        });
       }
-
-      // Climbing
-      const climbMap = { "none": 0, "few": 4, "regular": 7, "often": 10 };
-      const climbPoints = climbMap[answers.climbing] || 0;
-      points += climbPoints;
-      breakdown.climbing = { label: "Climbing Experience", value: answers.climbing, points: climbPoints, status: climbPoints >= 7 ? "✅" : climbPoints >= 4 ? "⚠️" : "❌" };
-
-      if (answers.climbing === "none") {
-        legends.push({ type: "info", text: "🧗 Never climbed? Rope access will train you, but gym climbing beforehand builds confidence and muscle memory." });
+      // 50/50: Young + no climbing + low fitness (but fitness medium+climbing helps)
+      else if (isYoung && !hasClimbing && isLowFit && hasBasicClimbing) {
+        resultStatus = "tight";
+        resultTitle = "🟡 50/50 - Here's Your Path";
+        resultMessage = "You have some climbing, but fitness is the missing piece. Address that and you're in.";
+        legends.push({
+          type: "warn",
+          text: "💪 Your climbing background helps. Get your fitness up to medium (consistent training 2-3x/week for 6 weeks) and you'll be in a much stronger position."
+        });
       }
-
-      // Fitness
-      const fitnessMap = { "low": 0, "medium": 5, "high": 7 };
-      const fitnessPoints = fitnessMap[answers.fitness] || 0;
-      points += fitnessPoints;
-      breakdown.fitness = { label: "Fitness Level", value: answers.fitness, points: fitnessPoints, status: fitnessPoints >= 5 ? "✅" : "⚠️" };
-
-      if (answers.fitness === "low") {
-        legends.push({ type: "warn", text: "💪 Low fitness will slow your progress. Start training now: squats, pull-ups, planks. Build your base before the course." });
+      // 50/50: Young + no trade + medium fitness + no climbing
+      else if (isYoung && trade === "none" && isMediumFit && !hasClimbing) {
+        resultStatus = "tight";
+        resultTitle = "🟡 50/50 - You're Close";
+        resultMessage = "Your fitness is good. Add climbing experience or trade background to tip the scales.";
+        legends.push({
+          type: "info",
+          text: "🧗 Try gym climbing for 4-6 weeks. Or look for short-term construction work. Either one significantly improves your profile."
+        });
       }
-
-      // Teamwork
-      const teamMap = { "alone": 0, "ok": 3, "great": 7 };
-      const teamPoints = teamMap[answers.teamwork] || 0;
-      points += teamPoints;
-      breakdown.teamwork = { label: "Teamwork Style", value: answers.teamwork, points: teamPoints, status: teamPoints >= 5 ? "✅" : "⚠️" };
-
-      if (answers.teamwork === "alone") {
-        legends.push({ type: "warn", text: "🤝 Rope access is team-based. Safety depends on communication, trust, and coordination. Be ready for constant collaboration." });
+      // 50/50: 30-35 + medium fitness + some climbing + no trade
+      else if (age === "30-35" && isMediumFit && (hasClimbing || hasBasicClimbing) && trade === "none") {
+        resultStatus = "tight";
+        resultTitle = "🟡 50/50 - Develop Your Strengths";
+        resultMessage = "You're balanced but not strong in any one area. Focus on fitness or trade experience.";
+        legends.push({
+          type: "warn",
+          text: "💪 Push your fitness to 'high' with 2-3 months of consistent training, OR gain some trade/construction experience. Either one moves you from borderline to confident."
+        });
       }
-
-      // Citizenship check (not eliminatory, but matters in result)
-      const isCitizenOrPR = answers.citizenship === "yes";
+      // Fallback: Check if still blocked by teamwork
+      if (teamwork === "alone" && resultStatus === "strong") {
+        resultStatus = "team_blocker";
+        resultTitle = "⚠️ Can Pass Training, Industry Needs Adjustment";
+        resultMessage = "Technically you qualify, but there's a critical issue.";
+      } else if (teamwork === "alone" && resultStatus === "can_improve") {
+        resultStatus = "team_blocker";
+        resultTitle = "⚠️ Can Pass, But Teamwork is Non-Negotiable";
+        resultMessage = "Your other areas are solid, but rope access requires collaboration.";
+      }
 
       return {
-        total: points,
+        status: resultStatus,
+        title: resultTitle,
+        message: resultMessage,
         breakdown,
-        legends,
-        isCitizenOrPR,
-        qualifies: points >= 15 && isCitizenOrPR,
-        borderline: points >= 15 && !isCitizenOrPR,
-        needsWork: points < 15,
-        hasWeakAreas: points >= 15 && isCitizenOrPR && (
-          answers.fitness === "low" || 
-          answers.climbing === "none" || 
-          answers.climbing === "few"
-        )
+        legends
       };
     }
 
@@ -296,7 +421,7 @@
       };
 
       const handleSubmit = () => {
-        const evaluation = scoreAnswers(answers);
+        const evaluation = evaluateProfile(answers);
         setResult(evaluation);
       };
 
@@ -352,132 +477,42 @@
                 </>
               ) : (
                 <div className="result">
-                  {result.hasWeakAreas ? (
-                    <>
-                      <div className="result-icon">💪</div>
-                      <h2 style={{ color: "var(--success)" }}>You Qualify!</h2>
-                      <p>Your profile meets the pathway requirements. You're ready to apply. But here's how to excel in the course and land better jobs:</p>
+                  <div className="result-icon">
+                    {result.status === "blocked" ? "🚫" : result.status === "team_blocker" ? "⚠️" : result.status === "tight" ? "🟡" : result.status === "can_improve" ? "💪" : "🎉"}
+                  </div>
+                  <h2 style={{
+                    color: result.status === "blocked" ? "var(--danger)" : result.status === "team_blocker" ? "var(--warn)" : result.status === "tight" ? "var(--warn)" : result.status === "can_improve" ? "var(--accent)" : "var(--success)"
+                  }}>
+                    {result.title}
+                  </h2>
+                  <p>{result.message}</p>
 
-                      <div className="breakdown">
-                        {Object.values(result.breakdown).map((item, i) => (
-                          <div className="breakdown-row" key={i}>
-                            <span className="breakdown-label">
-                              {item.status} <strong>{item.label}</strong>
-                            </span>
-                          </div>
-                        ))}
+                  <div className="breakdown">
+                    {Object.values(result.breakdown).map((item, i) => (
+                      <div className="breakdown-row" key={i}>
+                        <span className="breakdown-label">
+                          {item.status} <strong>{item.label}</strong>
+                        </span>
                       </div>
+                    ))}
+                  </div>
 
-                      {result.legends.map((leg, i) => (
-                        <div key={i} className={`legend ${leg.type}`}>{leg.text}</div>
-                      ))}
+                  {result.legends.map((leg, i) => (
+                    <div key={i} className={`legend ${leg.type}`}>{leg.text}</div>
+                  ))}
 
-                      <div className="contact-block">
-                        <p>Ready to move forward?</p>
-                        <p style={{ marginBottom: 0 }}>Contact Vertical Horizonz directly:</p>
-                        <div className="contact-email">hello@verticalhorizonz.co.nz</div>
-                      </div>
+                  {(result.status !== "blocked") && (
+                    <div className="contact-block">
+                      <p>Ready to take the next step?</p>
+                      <p style={{ marginBottom: 0 }}>Contact Vertical Horizonz directly:</p>
+                      <div className="contact-email">hello@verticalhorizonz.co.nz</div>
+                    </div>
+                  )}
 
-                      <div className="btn-group">
-                        <button className="btn secondary" onClick={handleReset}>Retake Assessment</button>
-                        <button className="btn primary" onClick={onClose}>Close</button>
-                      </div>
-                    </>
-                  ) : result.qualifies ? (
-                    <>
-                      <div className="result-icon">🎉</div>
-                      <h2 style={{ color: "var(--success)" }}>You Qualify!</h2>
-                      <p>Your profile aligns with the Dual Qualification Pathway. You've got the foundation to succeed.</p>
-
-                      <div className="breakdown">
-                        {Object.values(result.breakdown).map((item, i) => (
-                          <div className="breakdown-row" key={i}>
-                            <span className="breakdown-label">
-                              {item.status} <strong>{item.label}</strong>
-                            </span>
-                            
-                          </div>
-                        ))}
-                      </div>
-
-                      {result.legends.map((leg, i) => (
-                        <div key={i} className={`legend ${leg.type}`}>{leg.text}</div>
-                      ))}
-
-                      <div className="contact-block">
-                        <p>Ready to take the next step?</p>
-                        <p style={{ marginBottom: 0 }}>Contact Vertical Horizonz directly:</p>
-                        <div className="contact-email">hello@verticalhorizonz.co.nz</div>
-                      </div>
-
-                      <div className="btn-group">
-                        <button className="btn secondary" onClick={handleReset}>Retake Assessment</button>
-                        <button className="btn primary" onClick={onClose}>Close</button>
-                      </div>
-                    </>
-                  ) : result.borderline ? (
-                    <>
-                      <div className="result-icon">⚠️</div>
-                      <h2 style={{ color: "var(--warn)" }}>Almost There</h2>
-                      <p>Your profile is strong, but there's an important requirement:</p>
-
-                      <div className="legend danger" style={{ marginTop: 20 }}>
-                        🛂 The Dual Qualification is designed for <strong>NZ citizens and permanent residents only</strong>. 
-                        If you're on a visa pathway, consider exploring other training options or connecting with immigration specialists.
-                      </div>
-
-                      <div className="breakdown">
-                        {Object.values(result.breakdown).map((item, i) => (
-                          <div className="breakdown-row" key={i}>
-                            <span className="breakdown-label">
-                              {item.status} <strong>{item.label}</strong>
-                            </span>
-                            
-                          </div>
-                        ))}
-                      </div>
-
-                      {result.legends.map((leg, i) => (
-                        <div key={i} className={`legend ${leg.type}`}>{leg.text}</div>
-                      ))}
-
-                      <div className="btn-group">
-                        <button className="btn secondary" onClick={handleReset}>Retake Assessment</button>
-                        <button className="btn primary" onClick={onClose}>Close</button>
-                      </div>
-                    </>
-                  ) : result.needsWork ? (
-                    <>
-                      <div className="result-icon">📘</div>
-                      <h2 style={{ color: "var(--warn)" }}>Keep Building</h2>
-                      <p>You're not ready yet, but these areas will get you there:</p>
-
-                      <div className="breakdown">
-                        {Object.values(result.breakdown).map((item, i) => (
-                          <div className="breakdown-row" key={i}>
-                            <span className="breakdown-label">
-                              {item.status} <strong>{item.label}</strong>
-                            </span>
-                            
-                          </div>
-                        ))}
-                      </div>
-
-                      {result.legends.map((leg, i) => (
-                        <div key={i} className={`legend ${leg.type}`}>{leg.text}</div>
-                      ))}
-
-                      <p style={{ marginTop: 24, color: "var(--muted)", fontSize: 13 }}>
-                        Come back in 6 months after working on these areas. You've got this.
-                      </p>
-
-                      <div className="btn-group">
-                        <button className="btn secondary" onClick={handleReset}>Retake Assessment</button>
-                        <button className="btn primary" onClick={onClose}>Close</button>
-                      </div>
-                    </>
-                  ) : null
-                }
+                  <div className="btn-group">
+                    <button className="btn secondary" onClick={handleReset}>Retake Assessment</button>
+                    <button className="btn primary" onClick={onClose}>Close</button>
+                  </div>
                 </div>
               )}
             </div>
@@ -501,8 +536,7 @@
 
           <section className="hero">
             <h1>A Faster Way Into Rope Access</h1>
-            <p>The Dual Qualification Pathway combines NZQA and IRATA certifications with real-world training. 
-            Get qualified without the traditional barriers.</p>
+            <p>The Dual Qualification Pathway combines NZQA and IRATA certifications with real-world training. Get qualified without the traditional barriers.</p>
             <button className="cta-btn" onClick={() => setShowTest(true)}>
               Check If You Qualify
             </button>
@@ -535,8 +569,8 @@
             <div style={{ marginTop: 32, padding: 24, background: "var(--raised)", borderLeft: "4px solid var(--accent)", borderRadius: 8 }}>
               <h3 style={{ color: "var(--accent)", marginBottom: 12 }}>📋 The Structure</h3>
               <p style={{ color: "var(--muted)", fontSize: 14, lineHeight: 1.6 }}>
-                <strong>Week 1–2:</strong> Intensive rope access training (6 days)<br/>
-                <strong>Month 2–8:</strong> 130 logged hours working on real projects<br/>
+                <strong>Week 1–2:</strong> Intensive rope access training<br/>
+                <strong>Month 2–8:</strong> Logged hours working on real projects<br/>
                 <strong>Month 9–10:</strong> Final assessment block<br/>
                 <strong>Result:</strong> NZQA + IRATA certified technician ready to work
               </p>
