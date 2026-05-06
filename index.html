@@ -104,7 +104,6 @@
     .breakdown-row { display:flex; justify-content:space-between; align-items:center; padding:10px 0; border-bottom:1px solid var(--border); font-size:14px; }
     .breakdown-row:last-child { border-bottom:none; }
     .breakdown-label { display:flex; gap:6px; align-items:center; }
-    .breakdown-value { font:700 13px "JetBrains Mono"; }
 
     .contact-block { background:var(--raised); border:2px solid var(--accent); border-radius:8px; padding:20px; margin:24px 0; text-align:center; }
     .contact-block p { color:var(--muted); font-size:13px; margin-bottom:12px; }
@@ -205,14 +204,25 @@
       const legends = [];
 
       // Age
-      const ageMap = { "18-25": 5, "25-30": 7, "30-35": 9, "35-40": 5, "40+": 0 };
+      const ageMap = { "18-25": 5, "25-30": 7, "30-35": 9, "35-40": 5, "40+": 3 };
       const agePoints = ageMap[answers.age] || 0;
       points += agePoints;
-      breakdown.age = { label: "Age", value: answers.age, points: agePoints, status: agePoints >= 7 ? "✅" : "⚠️" };
-
+      
+      let ageStatus = "✅";
       if (answers.age === "40+") {
-        legends.push({ type: "warn", text: "🎂 At 40+, rope access is physically demanding. Your fitness and climbing experience become crucial." });
+        ageStatus = "⚠️";
+        const hasGoodFitness = answers.fitness === "high";
+        const hasClimbing = answers.climbing === "regular" || answers.climbing === "often";
+        const hasTrade = answers.trade === "pro" || answers.trade === "some";
+        
+        if (hasGoodFitness && hasClimbing && hasTrade) {
+          legends.push({ type: "info", text: "🎂 At 40+, you've got the foundation: strong fitness, climbing experience, and trade background. You can absolutely do this, but rope access is physically demanding—stay consistent." });
+        } else {
+          legends.push({ type: "warn", text: "🎂 At 40+, rope access is physically demanding. You need strong fitness (3+x/week), climbing experience, and ideally some trade background. Build these first." });
+        }
       }
+      
+      breakdown.age = { label: "Age", value: answers.age, points: agePoints, status: ageStatus };
 
       // Trade
       const tradeMap = { "none": 0, "some": 3, "pro": 7 };
@@ -349,7 +359,7 @@
                             <span className="breakdown-label">
                               {item.status} <strong>{item.label}</strong>
                             </span>
-                            <span className="breakdown-value">{item.points} pts</span>
+                            
                           </div>
                         ))}
                       </div>
@@ -386,7 +396,7 @@
                             <span className="breakdown-label">
                               {item.status} <strong>{item.label}</strong>
                             </span>
-                            <span className="breakdown-value">{item.points} pts</span>
+                            
                           </div>
                         ))}
                       </div>
@@ -412,7 +422,7 @@
                             <span className="breakdown-label">
                               {item.status} <strong>{item.label}</strong>
                             </span>
-                            <span className="breakdown-value">{item.points} pts</span>
+                            
                           </div>
                         ))}
                       </div>
@@ -455,7 +465,7 @@
           <section className="hero">
             <h1>A Faster Way Into Rope Access</h1>
             <p>The Dual Qualification Pathway combines NZQA and IRATA certifications with real-world training. 
-            Get job-ready in 6–10 months without the traditional barriers.</p>
+            Get qualified without the traditional barriers.</p>
             <button className="cta-btn" onClick={() => setShowTest(true)}>
               Check If You Qualify
             </button>
@@ -481,8 +491,7 @@
               <ul>
                 <li><strong>NZQA Funded:</strong> New Zealand Certificate in Industrial Rope Access (Level 3) — fully funded for eligible domestic learners</li>
                 <li><strong>IRATA Certified:</strong> Internationally recognised qualification for just $250 admin & cert fee</li>
-                <li><strong>6–10 months:</strong> Front-loaded intensive training followed by 130 hours of real-world logged work</li>
-                <li><strong>Job-ready:</strong> You finish with certifications AND logged rope hours that employers actually want</li>
+                <li><strong>Front-loaded intensive training</strong> followed by logged real-world work experience</li>
               </ul>
             </div>
 
