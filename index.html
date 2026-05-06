@@ -308,6 +308,18 @@
         resultTitle = "🎉 Excellent Profile!";
         resultMessage = "You've got all the pieces: youth, fitness, and climbing experience. You're ready for the pathway and have strong job prospects.";
       }
+      // STRONG: Young + fit + trade (even without climbing)
+      else if (isYoung && isHighFit && hasTrade) {
+        resultStatus = "strong";
+        resultTitle = "🎉 Excellent Profile!";
+        resultMessage = "You've got all the pieces: youth, fitness, and trade experience. You're ready for the pathway and have strong job prospects.";
+        if (!hasClimbing) {
+          legends.push({
+            type: "info",
+            text: "🧗 No climbing yet? It's trainable. But 4-6 weeks of gym climbing before the course will make your transition smoother."
+          });
+        }
+      }
       // STRONG: Middle age + good fitness + climbing + trade
       else if (isMiddleAge && (isHighFit || isMediumFit) && hasClimbing && hasTrade) {
         resultStatus = "strong";
