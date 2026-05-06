@@ -274,7 +274,12 @@
         isCitizenOrPR,
         qualifies: points >= 15 && isCitizenOrPR,
         borderline: points >= 15 && !isCitizenOrPR,
-        needsWork: points < 15
+        needsWork: points < 15,
+        hasWeakAreas: points >= 15 && isCitizenOrPR && (
+          answers.fitness === "low" || 
+          answers.climbing === "none" || 
+          answers.climbing === "few"
+        )
       };
     }
 
@@ -347,7 +352,38 @@
                 </>
               ) : (
                 <div className="result">
-                  {result.qualifies ? (
+                  {result.hasWeakAreas ? (
+                    <>
+                      <div className="result-icon">💪</div>
+                      <h2 style={{ color: "var(--success)" }}>You Qualify!</h2>
+                      <p>Your profile meets the pathway requirements. You're ready to apply. But here's how to excel in the course and land better jobs:</p>
+
+                      <div className="breakdown">
+                        {Object.values(result.breakdown).map((item, i) => (
+                          <div className="breakdown-row" key={i}>
+                            <span className="breakdown-label">
+                              {item.status} <strong>{item.label}</strong>
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+
+                      {result.legends.map((leg, i) => (
+                        <div key={i} className={`legend ${leg.type}`}>{leg.text}</div>
+                      ))}
+
+                      <div className="contact-block">
+                        <p>Ready to move forward?</p>
+                        <p style={{ marginBottom: 0 }}>Contact Vertical Horizonz directly:</p>
+                        <div className="contact-email">hello@verticalhorizonz.co.nz</div>
+                      </div>
+
+                      <div className="btn-group">
+                        <button className="btn secondary" onClick={handleReset}>Retake Assessment</button>
+                        <button className="btn primary" onClick={onClose}>Close</button>
+                      </div>
+                    </>
+                  ) : result.qualifies ? (
                     <>
                       <div className="result-icon">🎉</div>
                       <h2 style={{ color: "var(--success)" }}>You Qualify!</h2>
@@ -410,7 +446,7 @@
                         <button className="btn primary" onClick={onClose}>Close</button>
                       </div>
                     </>
-                  ) : (
+                  ) : result.needsWork ? (
                     <>
                       <div className="result-icon">📘</div>
                       <h2 style={{ color: "var(--warn)" }}>Keep Building</h2>
@@ -440,7 +476,8 @@
                         <button className="btn primary" onClick={onClose}>Close</button>
                       </div>
                     </>
-                  )}
+                  ) : null
+                }
                 </div>
               )}
             </div>
