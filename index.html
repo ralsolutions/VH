@@ -330,8 +330,18 @@
           text: "🧗 No climbing experience yet? Rope access training covers it, but gym climbing beforehand (even 4-6 weeks) builds confidence and muscle memory. It makes a real difference."
         });
       }
-      // CAN IMPROVE: Middle age + decent fitness + some climbing
-      else if (isMiddleAge && (isHighFit || isMediumFit) && (hasClimbing || hasBasicClimbing)) {
+      // CAN IMPROVE: Young + fit but basic climbing
+      else if (isYoung && isHighFit && hasBasicClimbing) {
+        resultStatus = "can_improve";
+        resultTitle = "💪 You Can Pass - But Build On This";
+        resultMessage = "Your fitness is solid. Your climbing is a start—push it to regular practice and you're very strong.";
+        legends.push({
+          type: "warn",
+          text: "🧗 You've climbed a few times. Keep going—aim for gym climbing 1-2x per week for the next 6-8 weeks. Regular practice makes a huge difference on ropes."
+        });
+      }
+      // CAN IMPROVE: Middle age + any fitness + some climbing
+      else if (isMiddleAge && (hasClimbing || hasBasicClimbing)) {
         resultStatus = "can_improve";
         resultTitle = "💪 You Can Pass - But Strengthen These";
         resultMessage = "You're on track. Depending on your combination, a few specific improvements will boost your readiness.";
@@ -345,6 +355,12 @@
           legends.push({
             type: "info",
             text: "🔧 No trade background? You can learn on the job, but hiring improves significantly with construction experience. Worth considering."
+          });
+        }
+        if (hasBasicClimbing && !hasClimbing) {
+          legends.push({
+            type: "info",
+            text: "🧗 You've climbed a few times—keep going. Aim for gym climbing 1-2x/week for 2-3 months."
           });
         }
       }
