@@ -1,0 +1,536 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Vertical Horizonz · Dual Qualification Rope Access Pathway</title>
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-deep:#0a0a0a;
+      --bg:#121212;
+      --panel:#1a1a1a;
+      --raised:#252525;
+      --border:#333;
+      --text:#f5f5f5;
+      --muted:#a0a0a0;
+      --dim:#666;
+      --accent:#00d4ff;
+      --accent-dark:#0099cc;
+      --success:#22c55e;
+      --danger:#ef4444;
+      --warn:#eab308;
+    }
+
+    * { box-sizing:border-box; margin:0; padding:0; }
+    html, body, #root { height:100%; }
+    body {
+      overflow-x:hidden;
+      font-family:"Space Grotesk","JetBrains Mono",sans-serif;
+      background:var(--bg-deep);
+      color:var(--text);
+      -webkit-font-smoothing:antialiased;
+    }
+
+    button, input, textarea, select { font:inherit; }
+    button { border:none; }
+    input:focus, textarea:focus, select:focus {
+      outline:none;
+      border-color:var(--accent) !important;
+      box-shadow:0 0 0 2px rgba(0,212,255,.15);
+    }
+
+    ::-webkit-scrollbar { width:5px; height:5px; }
+    ::-webkit-scrollbar-thumb { background:var(--border); border-radius:3px; }
+
+    @keyframes fadeIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+    @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:.5; } }
+    @keyframes glow { 0%,100% { box-shadow:0 0 20px rgba(0,212,255,.3); } 50% { box-shadow:0 0 40px rgba(0,212,255,.5); } }
+
+    .app { min-height:100vh; background:var(--bg-deep); }
+    .header { position:sticky; top:0; z-index:100; background:var(--bg); border-bottom:1px solid var(--border); padding:20px 24px; display:flex; align-items:center; gap:20px; }
+    .logo { width:40px; height:40px; background:var(--text); border-radius:4px; display:flex; align-items:center; justify-content:center; font:800 16px "Space Grotesk"; color:var(--bg); flex-shrink:0; }
+    .header h1 { font:800 18px "Space Grotesk"; letter-spacing:.5px; }
+    .header p { margin-top:2px; color:var(--dim); font:600 10px "JetBrains Mono"; text-transform:uppercase; letter-spacing:1px; }
+    
+    .hero { padding:60px 24px; text-align:center; background:linear-gradient(135deg, var(--bg) 0%, var(--panel) 100%); }
+    .hero h1 { font:800 42px "Space Grotesk"; margin-bottom:16px; letter-spacing:-.5px; }
+    .hero p { color:var(--muted); font-size:16px; line-height:1.6; max-width:700px; margin:0 auto 32px; }
+    
+    .section { padding:48px 24px; max-width:1000px; margin:0 auto; }
+    .section h2 { font:800 28px "Space Grotesk"; margin-bottom:24px; letter-spacing:-.3px; }
+    .section p { color:var(--muted); line-height:1.7; margin-bottom:16px; font-size:15px; }
+    
+    .problem, .solution { margin-bottom:32px; padding:24px; background:var(--panel); border:1px solid var(--border); border-radius:8px; }
+    .problem h3 { color:var(--danger); font:700 16px "Space Grotesk"; margin-bottom:12px; display:flex; gap:8px; align-items:center; }
+    .solution h3 { color:var(--success); font:700 16px "Space Grotesk"; margin-bottom:12px; display:flex; gap:8px; align-items:center; }
+    .problem ul, .solution ul { margin:12px 0 0 24px; color:var(--muted); font-size:14px; }
+    .problem li, .solution li { margin-bottom:8px; }
+
+    .cta-btn { background:var(--accent); color:var(--bg); padding:14px 28px; border-radius:6px; font:800 13px "JetBrains Mono"; text-transform:uppercase; letter-spacing:.5px; cursor:pointer; transition:all .2s; }
+    .cta-btn:hover { background:var(--accent-dark); box-shadow:0 0 30px rgba(0,212,255,.3); transform:translateY(-2px); }
+
+    .overlay { position:fixed; inset:0; z-index:1000; background:rgba(10,10,10,.92); backdrop-filter:blur(8px); display:grid; place-items:center; padding:20px; }
+    .modal { width:100%; max-width:650px; max-height:90vh; overflow:auto; background:var(--panel); border:1px solid var(--border); border-radius:10px; animation:fadeIn .2s ease-out; }
+    .modal-head { padding:24px; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:flex-start; gap:16px; }
+    .modal-head h2 { font:800 22px "Space Grotesk"; }
+    .modal-head small { color:var(--dim); font:600 10px "JetBrains Mono"; text-transform:uppercase; }
+    .close { background:transparent; color:var(--muted); cursor:pointer; font-size:28px; line-height:1; }
+    .modal-body { padding:24px; }
+
+    .progress { height:6px; background:var(--border); border-radius:3px; overflow:hidden; margin-bottom:24px; }
+    .progress div { height:100%; background:var(--accent); transition:width .2s ease; }
+
+    .question { margin-bottom:28px; }
+    .question h3 { font:700 15px "Space Grotesk"; margin-bottom:12px; display:flex; gap:8px; align-items:center; }
+    .options { display:flex; flex-direction:column; gap:10px; }
+    .option { padding:12px 14px; background:var(--raised); border:1px solid var(--border); border-radius:6px; color:var(--muted); cursor:pointer; transition:all .15s; text-align:left; }
+    .option:hover { background:var(--border); color:var(--text); }
+    .option.selected { background:var(--accent); color:var(--bg); border-color:var(--accent); font-weight:700; }
+
+    .legend { padding:12px 14px; background:rgba(0,212,255,.08); border-left:3px solid var(--accent); border-radius:4px; color:var(--muted); font-size:13px; line-height:1.5; margin-bottom:16px; }
+    .legend.warn { background:rgba(234,179,8,.08); border-color:var(--warn); color:#e6d156; }
+    .legend.danger { background:rgba(239,68,68,.08); border-color:var(--danger); color:#f8a5a5; }
+
+    .result { text-align:center; padding:32px; }
+    .result-icon { font-size:60px; margin-bottom:16px; animation:pulse 2s infinite; }
+    .result h2 { font:800 24px "Space Grotesk"; margin-bottom:12px; }
+    .result p { color:var(--muted); font-size:14px; line-height:1.6; margin-bottom:24px; }
+
+    .breakdown { background:var(--raised); border:1px solid var(--border); border-radius:8px; padding:20px; margin:24px 0; text-align:left; }
+    .breakdown-row { display:flex; justify-content:space-between; align-items:center; padding:10px 0; border-bottom:1px solid var(--border); font-size:14px; }
+    .breakdown-row:last-child { border-bottom:none; }
+    .breakdown-label { display:flex; gap:6px; align-items:center; }
+    .breakdown-value { font:700 13px "JetBrains Mono"; }
+
+    .contact-block { background:var(--raised); border:2px solid var(--accent); border-radius:8px; padding:20px; margin:24px 0; text-align:center; }
+    .contact-block p { color:var(--muted); font-size:13px; margin-bottom:12px; }
+    .contact-email { font:700 15px "JetBrains Mono"; color:var(--accent); word-break:break-all; }
+
+    .btn-group { display:flex; gap:12px; margin-top:24px; justify-content:center; flex-wrap:wrap; }
+    .btn { padding:12px 20px; border-radius:6px; font:700 12px "JetBrains Mono"; text-transform:uppercase; cursor:pointer; transition:all .2s; border:1px solid var(--border); }
+    .btn.primary { background:var(--accent); color:var(--bg); border-color:var(--accent); }
+    .btn.primary:hover { background:var(--accent-dark); }
+    .btn.secondary { background:transparent; color:var(--muted); }
+    .btn.secondary:hover { background:var(--raised); color:var(--text); }
+    .btn:disabled { opacity:.4; cursor:not-allowed; }
+
+    .footer { padding:40px 24px; text-align:center; color:var(--dim); font-size:12px; border-top:1px solid var(--border); }
+
+    @media (max-width:640px) {
+      .hero h1 { font-size:32px; }
+      .hero p { font-size:14px; }
+      .section h2 { font-size:22px; }
+      .header { flex-direction:column; text-align:center; }
+    }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="text/babel">
+    const { useState, useMemo } = React;
+
+    const questions = [
+      {
+        id: "citizenship",
+        emoji: "🛂",
+        text: "Are you a New Zealand citizen or permanent resident?",
+        options: [
+          ["Yes, citizen or PR", "yes"],
+          ["No, on visa", "no"],
+          ["Applying for residency", "applying"]
+        ]
+      },
+      {
+        id: "age",
+        emoji: "🎂",
+        text: "What's your age range?",
+        options: [
+          ["18 - 25", "18-25"],
+          ["25 - 30", "25-30"],
+          ["30 - 35", "30-35"],
+          ["35 - 40", "35-40"],
+          ["40+", "40+"]
+        ]
+      },
+      {
+        id: "trade",
+        emoji: "🔧",
+        text: "Trade or construction experience?",
+        options: [
+          ["None", "none"],
+          ["Some (1-2 years)", "some"],
+          ["Solid experience (5+ years)", "pro"]
+        ]
+      },
+      {
+        id: "climbing",
+        emoji: "🧗",
+        text: "Climbing or height-work experience?",
+        options: [
+          ["None", "none"],
+          ["Few times", "few"],
+          ["Regular (few times/month)", "regular"],
+          ["Often", "often"]
+        ]
+      },
+      {
+        id: "fitness",
+        emoji: "💪",
+        text: "Current fitness level?",
+        options: [
+          ["Low (sedentary)", "low"],
+          ["Medium (some activity)", "medium"],
+          ["High (regular training 3+x/week)", "high"]
+        ]
+      },
+      {
+        id: "teamwork",
+        emoji: "🤝",
+        text: "How do you feel about teamwork?",
+        options: [
+          ["Prefer working alone", "alone"],
+          ["Can work in teams, no problem", "ok"],
+          ["Teamwork is the dream work", "great"]
+        ]
+      }
+    ];
+
+    function scoreAnswers(answers) {
+      let points = 0;
+      const breakdown = {};
+      const legends = [];
+
+      // Age
+      const ageMap = { "18-25": 5, "25-30": 7, "30-35": 9, "35-40": 5, "40+": 0 };
+      const agePoints = ageMap[answers.age] || 0;
+      points += agePoints;
+      breakdown.age = { label: "Age", value: answers.age, points: agePoints, status: agePoints >= 7 ? "✅" : "⚠️" };
+
+      if (answers.age === "40+") {
+        legends.push({ type: "warn", text: "🎂 At 40+, rope access is physically demanding. Your fitness and climbing experience become crucial." });
+      }
+
+      // Trade
+      const tradeMap = { "none": 0, "some": 3, "pro": 7 };
+      const tradePoints = tradeMap[answers.trade] || 0;
+      points += tradePoints;
+      breakdown.trade = { label: "Trade Experience", value: answers.trade, points: tradePoints, status: tradePoints >= 3 ? "✅" : "⚠️" };
+
+      if (answers.trade === "none") {
+        legends.push({ type: "info", text: "🔧 No trade background? That's OK. You can learn on the job, but hiring improves with construction experience." });
+      }
+
+      // Climbing
+      const climbMap = { "none": 0, "few": 4, "regular": 7, "often": 10 };
+      const climbPoints = climbMap[answers.climbing] || 0;
+      points += climbPoints;
+      breakdown.climbing = { label: "Climbing Experience", value: answers.climbing, points: climbPoints, status: climbPoints >= 7 ? "✅" : climbPoints >= 4 ? "⚠️" : "❌" };
+
+      if (answers.climbing === "none") {
+        legends.push({ type: "info", text: "🧗 Never climbed? Rope access will train you, but gym climbing beforehand builds confidence and muscle memory." });
+      }
+
+      // Fitness
+      const fitnessMap = { "low": 0, "medium": 5, "high": 7 };
+      const fitnessPoints = fitnessMap[answers.fitness] || 0;
+      points += fitnessPoints;
+      breakdown.fitness = { label: "Fitness Level", value: answers.fitness, points: fitnessPoints, status: fitnessPoints >= 5 ? "✅" : "⚠️" };
+
+      if (answers.fitness === "low") {
+        legends.push({ type: "warn", text: "💪 Low fitness will slow your progress. Start training now: squats, pull-ups, planks. Build your base before the course." });
+      }
+
+      // Teamwork
+      const teamMap = { "alone": 0, "ok": 3, "great": 7 };
+      const teamPoints = teamMap[answers.teamwork] || 0;
+      points += teamPoints;
+      breakdown.teamwork = { label: "Teamwork Style", value: answers.teamwork, points: teamPoints, status: teamPoints >= 5 ? "✅" : "⚠️" };
+
+      if (answers.teamwork === "alone") {
+        legends.push({ type: "warn", text: "🤝 Rope access is team-based. Safety depends on communication, trust, and coordination. Be ready for constant collaboration." });
+      }
+
+      // Citizenship check (not eliminatory, but matters in result)
+      const isCitizenOrPR = answers.citizenship === "yes";
+
+      return {
+        total: points,
+        breakdown,
+        legends,
+        isCitizenOrPR,
+        qualifies: points >= 15 && isCitizenOrPR,
+        borderline: points >= 15 && !isCitizenOrPR,
+        needsWork: points < 15
+      };
+    }
+
+    function TestModal({ onClose }) {
+      const [answers, setAnswers] = useState({});
+      const [result, setResult] = useState(null);
+
+      const answered = Object.keys(answers).length;
+      const allAnswered = questions.every(q => answers[q.id]);
+      const progress = (answered / questions.length) * 100;
+
+      const handleAnswer = (questionId, value) => {
+        setAnswers(prev => ({ ...prev, [questionId]: value }));
+      };
+
+      const handleSubmit = () => {
+        const evaluation = scoreAnswers(answers);
+        setResult(evaluation);
+      };
+
+      const handleReset = () => {
+        setAnswers({});
+        setResult(null);
+      };
+
+      return (
+        <div className="overlay" onClick={onClose}>
+          <div className="modal" onClick={e => e.stopPropagation()}>
+            <div className="modal-head">
+              <div>
+                <small>Eligibility Assessment</small>
+                <h2>Dual Qualification Pathway</h2>
+              </div>
+              <button className="close" onClick={onClose}>×</button>
+            </div>
+
+            <div className="modal-body">
+              {!result ? (
+                <>
+                  <div className="progress"><div style={{ width: progress + "%" }}></div></div>
+                  <p style={{ color: "var(--dim)", fontSize: 13, textAlign: "center", marginBottom: 20 }}>
+                    Answer honestly. This takes 2 minutes.
+                  </p>
+
+                  {questions.map(q => (
+                    <div className="question" key={q.id}>
+                      <h3>{q.emoji} {q.text}</h3>
+                      <div className="options">
+                        {q.options.map(opt => (
+                          <button
+                            key={opt[1]}
+                            className={"option " + (answers[q.id] === opt[1] ? "selected" : "")}
+                            onClick={() => handleAnswer(q.id, opt[1])}
+                          >
+                            {answers[q.id] === opt[1] ? "✓ " : ""}{opt[0]}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+
+                  <button
+                    className="btn primary"
+                    style={{ width: "100%", padding: 14, marginTop: 24, opacity: allAnswered ? 1 : 0.4, cursor: allAnswered ? "pointer" : "not-allowed" }}
+                    disabled={!allAnswered}
+                    onClick={handleSubmit}
+                  >
+                    See My Assessment
+                  </button>
+                </>
+              ) : (
+                <div className="result">
+                  {result.qualifies ? (
+                    <>
+                      <div className="result-icon">🎉</div>
+                      <h2 style={{ color: "var(--success)" }}>You Qualify!</h2>
+                      <p>Your profile aligns with the Dual Qualification Pathway. You've got the foundation to succeed.</p>
+
+                      <div className="breakdown">
+                        {Object.values(result.breakdown).map((item, i) => (
+                          <div className="breakdown-row" key={i}>
+                            <span className="breakdown-label">
+                              {item.status} <strong>{item.label}</strong>
+                            </span>
+                            <span className="breakdown-value">{item.points} pts</span>
+                          </div>
+                        ))}
+                      </div>
+
+                      {result.legends.map((leg, i) => (
+                        <div key={i} className={`legend ${leg.type}`}>{leg.text}</div>
+                      ))}
+
+                      <div className="contact-block">
+                        <p>Ready to take the next step?</p>
+                        <p style={{ marginBottom: 0 }}>Contact Vertical Horizonz directly:</p>
+                        <div className="contact-email">hello@verticalhorizonz.co.nz</div>
+                      </div>
+
+                      <div className="btn-group">
+                        <button className="btn secondary" onClick={handleReset}>Retake Assessment</button>
+                        <button className="btn primary" onClick={onClose}>Close</button>
+                      </div>
+                    </>
+                  ) : result.borderline ? (
+                    <>
+                      <div className="result-icon">⚠️</div>
+                      <h2 style={{ color: "var(--warn)" }}>Almost There</h2>
+                      <p>Your profile is strong, but there's an important requirement:</p>
+
+                      <div className="legend danger" style={{ marginTop: 20 }}>
+                        🛂 The Dual Qualification is designed for <strong>NZ citizens and permanent residents only</strong>. 
+                        If you're on a visa pathway, consider exploring other training options or connecting with immigration specialists.
+                      </div>
+
+                      <div className="breakdown">
+                        {Object.values(result.breakdown).map((item, i) => (
+                          <div className="breakdown-row" key={i}>
+                            <span className="breakdown-label">
+                              {item.status} <strong>{item.label}</strong>
+                            </span>
+                            <span className="breakdown-value">{item.points} pts</span>
+                          </div>
+                        ))}
+                      </div>
+
+                      {result.legends.map((leg, i) => (
+                        <div key={i} className={`legend ${leg.type}`}>{leg.text}</div>
+                      ))}
+
+                      <div className="btn-group">
+                        <button className="btn secondary" onClick={handleReset}>Retake Assessment</button>
+                        <button className="btn primary" onClick={onClose}>Close</button>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div className="result-icon">📘</div>
+                      <h2 style={{ color: "var(--warn)" }}>Keep Building</h2>
+                      <p>You're not ready yet, but these areas will get you there:</p>
+
+                      <div className="breakdown">
+                        {Object.values(result.breakdown).map((item, i) => (
+                          <div className="breakdown-row" key={i}>
+                            <span className="breakdown-label">
+                              {item.status} <strong>{item.label}</strong>
+                            </span>
+                            <span className="breakdown-value">{item.points} pts</span>
+                          </div>
+                        ))}
+                      </div>
+
+                      {result.legends.map((leg, i) => (
+                        <div key={i} className={`legend ${leg.type}`}>{leg.text}</div>
+                      ))}
+
+                      <p style={{ marginTop: 24, color: "var(--muted)", fontSize: 13 }}>
+                        Come back in 6 months after working on these areas. You've got this.
+                      </p>
+
+                      <div className="btn-group">
+                        <button className="btn secondary" onClick={handleReset}>Retake Assessment</button>
+                        <button className="btn primary" onClick={onClose}>Close</button>
+                      </div>
+                    </>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    function Landing() {
+      const [showTest, setShowTest] = useState(false);
+
+      return (
+        <div className="app">
+          <header className="header">
+            <div className="logo">VH</div>
+            <div>
+              <h1>Vertical Horizonz</h1>
+              <p>Poutū, Huapai · New Zealand</p>
+            </div>
+          </header>
+
+          <section className="hero">
+            <h1>A Faster Way Into Rope Access</h1>
+            <p>The Dual Qualification Pathway combines NZQA and IRATA certifications with real-world training. 
+            Get job-ready in 6–10 months without the traditional barriers.</p>
+            <button className="cta-btn" onClick={() => setShowTest(true)}>
+              Check If You Qualify
+            </button>
+          </section>
+
+          <section className="section">
+            <h2>The Problem</h2>
+            <div className="problem">
+              <h3>❌ Traditional Route = Too Slow, Too Expensive</h3>
+              <ul>
+                <li>Multiple qualifications scattered across different providers</li>
+                <li>IRATA Level 1 alone costs ~$2,000</li>
+                <li>Months of theory before touching a rope</li>
+                <li>Capable people delay entry or don't enter at all</li>
+              </ul>
+            </div>
+          </section>
+
+          <section className="section">
+            <h2>The Solution</h2>
+            <div className="solution">
+              <h3>✅ One Pathway, Two Credentials, Real Experience</h3>
+              <ul>
+                <li><strong>NZQA Funded:</strong> New Zealand Certificate in Industrial Rope Access (Level 3) — fully funded for eligible domestic learners</li>
+                <li><strong>IRATA Certified:</strong> Internationally recognised qualification for just $250 admin & cert fee</li>
+                <li><strong>6–10 months:</strong> Front-loaded intensive training followed by 130 hours of real-world logged work</li>
+                <li><strong>Job-ready:</strong> You finish with certifications AND logged rope hours that employers actually want</li>
+              </ul>
+            </div>
+
+            <div style={{ marginTop: 32, padding: 24, background: "var(--raised)", borderLeft: "4px solid var(--accent)", borderRadius: 8 }}>
+              <h3 style={{ color: "var(--accent)", marginBottom: 12 }}>📋 The Structure</h3>
+              <p style={{ color: "var(--muted)", fontSize: 14, lineHeight: 1.6 }}>
+                <strong>Week 1–2:</strong> Intensive rope access training (6 days)<br/>
+                <strong>Month 2–8:</strong> 130 logged hours working on real projects<br/>
+                <strong>Month 9–10:</strong> Final assessment block<br/>
+                <strong>Result:</strong> NZQA + IRATA certified technician ready to work
+              </p>
+            </div>
+          </section>
+
+          <section className="section">
+            <h2>Why This Matters</h2>
+            <p>
+              Rope access is a high-skill, high-trust industry. Employers need technicians trained properly, 
+              confident on the ropes, and ready from day one. This pathway delivers exactly that — without the 
+              usual price tag, delays, or fragmentation.
+            </p>
+            <p>
+              <strong>You don't need years of preparation.</strong> You need the right training, structured experience, 
+              and the confidence to climb. The Dual Qualification is built for that.
+            </p>
+          </section>
+
+          <section className="section" style={{ textAlign: "center", paddingBottom: 80 }}>
+            <h2>Ready to Check If You're a Fit?</h2>
+            <p style={{ marginBottom: 32 }}>
+              It takes 2 minutes. Answer honestly, get real feedback tailored to your profile.
+            </p>
+            <button className="cta-btn" onClick={() => setShowTest(true)}>
+              Start Eligibility Assessment
+            </button>
+          </section>
+
+          <footer className="footer">
+            <p>Vertical Horizonz · IRATA Certified Training Centre, Papakura</p>
+            <p style={{ marginTop: 12 }}>hello@verticalhorizonz.co.nz</p>
+          </footer>
+
+          {showTest && <TestModal onClose={() => setShowTest(false)} />}
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById("root")).render(<Landing />);
+  </script>
+</body>
+</html>
