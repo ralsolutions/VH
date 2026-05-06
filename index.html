@@ -313,15 +313,33 @@
         resultTitle = "🎉 Excellent Profile!";
         resultMessage = "You've got all the pieces: youth, fitness, and climbing experience. You're ready for the pathway and have strong job prospects.";
       }
-      // STRONG: Young + fit + trade (even without climbing)
-      else if (isYoung && isHighFit && hasTrade) {
+      // STRONG: Young + trade (any fitness) + climbing
+      else if (isYoung && hasTrade && hasClimbing) {
         resultStatus = "strong";
-        resultTitle = "🎉 Excellent Profile!";
-        resultMessage = "You've got all the pieces: youth, fitness, and trade experience. You're ready for the pathway and have strong job prospects.";
+        resultTitle = "🎉 Strong Profile!";
+        resultMessage = "You've got youth, trade background, and climbing experience. You're ready for the pathway.";
+        if (isLowFit || isMediumFit) {
+          legends.push({
+            type: "warn",
+            text: "💪 Your fitness level could be stronger. Consider training 2-3x/week for the next 4-6 weeks before starting—it'll make the course much easier."
+          });
+        }
+      }
+      // STRONG: Young + trade (even if lower fitness/climbing)
+      else if (isYoung && hasTrade) {
+        resultStatus = "strong";
+        resultTitle = "🎉 Strong Foundation!";
+        resultMessage = "Youth + trade background is a powerful combination. You've got the foundation to build on.";
+        if (isLowFit) {
+          legends.push({
+            type: "warn",
+            text: "💪 Low fitness is your main area to improve. Train 2-3x/week for 6-8 weeks—squats, pull-ups, planks. This is important at your age."
+          });
+        }
         if (!hasClimbing) {
           legends.push({
             type: "info",
-            text: "🧗 No climbing yet? It's trainable. But 4-6 weeks of gym climbing before the course will make your transition smoother."
+            text: "🧗 Add gym climbing 1-2x/week for 4-6 weeks before the course. It'll boost your confidence and job prospects."
           });
         }
       }
